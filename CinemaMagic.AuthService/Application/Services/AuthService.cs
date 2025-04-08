@@ -12,11 +12,21 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace CinemaMagic.AuthService.Services;
 
-public class AuthService(AuthDbContext context, IConfiguration configuration) : IAuthService
+public class AuthService : IAuthService
 {
+    private readonly IConfiguration _configuration;
+    private readonly IUserRepository _userRepository;
+
+    public AuthService(IConfiguration configuration, IUserRepository userRepository)
+    {
+        _configuration = configuration;
+        _userRepository = userRepository;
+    }
+    
    public async Task<TokenResponseDto?> LoginAsync(UserAuthDto userDto)
     {
-        var user = await context.Users.FirstOrDefaultAsync(x => x.PhoneNumber == userDto.PhoneNumber); 
+        var user = await _userRepository.GetUserByPhoneAsync(userDto.PhoneNumber);
+        
         if (!user.PhoneNumber.Equals(userDto.PhoneNumber))
             throw new ApplicationException("User does not match");
         
@@ -38,7 +48,7 @@ public class AuthService(AuthDbContext context, IConfiguration configuration) : 
 
     public async Task<User?> RegisterAsync(UserRegisterDto userDto)
     {
-        if (await context.Users.AnyAsync(x => x.PhoneNumber == userDto.PhoneNumber))
+        if (await _userRepository.GetUserByPhoneAsync(userDto.PhoneNumber) is not null)
             return null;
 
         var newUser = new User()
@@ -53,8 +63,7 @@ public class AuthService(AuthDbContext context, IConfiguration configuration) : 
         newUser.Password = new PasswordHasher<User>()
             .HashPassword(newUser, userDto.Password);
         
-        await context.Users.AddAsync(newUser);
-        await context.SaveChangesAsync();
+        await _userRepository.AddUserAsync(newUser);
         
         return newUser;
     }
@@ -66,7 +75,7 @@ public class AuthService(AuthDbContext context, IConfiguration configuration) : 
         user.RefreshToken = refreshToken;
         user.RefreshTokenExpiry = DateTime.Now.AddDays(7);
         
-        await context.SaveChangesAsync();
+        await _userRepository.UpdateRefreshTokenAsync(user);
         return refreshToken;
     }
     
@@ -78,13 +87,13 @@ public class AuthService(AuthDbContext context, IConfiguration configuration) : 
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Role, user.Role),
         };
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration.GetValue<string>("AppSettings:Token")!));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration.GetValue<string>("AppSettings:Token")!));
          
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512);
          
         var tokenDescriptor = new JwtSecurityToken(
-            issuer: configuration.GetValue<string>("AppSettings:Issuer"),
-            audience: configuration.GetValue<string>("AppSettings:Audience"),
+            issuer: _configuration.GetValue<string>("AppSettings:Issuer"),
+            audience: _configuration.GetValue<string>("AppSettings:Audience"),
             claims: claims,
             expires: DateTime.UtcNow.AddDays(1),
             signingCredentials: creds
@@ -105,7 +114,7 @@ public class AuthService(AuthDbContext context, IConfiguration configuration) : 
 
     private async Task<User?> ValidateRefreshTokenAsync(Guid userId, string refreshToken)
     {
-        var user = await context.Users.FirstOrDefaultAsync(x => x.Id == userId);
+        var user = await _userRepository.GetUserByIdAsync(userId);
         
         if (user is null || user.RefreshToken != refreshToken || user.RefreshTokenExpiry < DateTime.UtcNow)
             return null;

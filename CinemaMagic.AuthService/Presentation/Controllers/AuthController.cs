@@ -47,7 +47,7 @@ public class AuthController(IAuthService authService): ControllerBase
         var result = await authService.RefreshTokensAsync(refreshTokenRequestDto);
         
         if (result is null || result.AccessToken is null || result.RefreshToken is null)
-            return BadRequest("Invalid Refresh Token");
+            return Unauthorized("Invalid Refresh Token");
         
         return Ok(result);
     }

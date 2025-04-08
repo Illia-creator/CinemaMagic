@@ -1,5 +1,6 @@
 using System.Text;
 using CinemaMagic.AuthService.Data;
+using CinemaMagic.AuthService.Infrastruction.Repositories;
 using CinemaMagic.AuthService.Services;
 using CinemaMagic.AuthService.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -19,6 +20,7 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("UserDatabase")));
 
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 builder.Services.AddSwaggerGen(x =>
 {
