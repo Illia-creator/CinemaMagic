@@ -1,5 +1,6 @@
 using System.Text;
 using CinemaMagic.AuthService.Data;
+using CinemaMagic.AuthService.Infrastruction.Repositories;
 using CinemaMagic.AuthService.Services;
 using CinemaMagic.AuthService.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -9,16 +10,18 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddDbContext<AuthDbContext>(options => 
     options.UseSqlServer(builder.Configuration.GetConnectionString("UserDatabase")));
 
-builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IOtpRepository, OtpRepository>();
+
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IOtpService, OtpService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Services.AddSwaggerGen(x =>
 {
