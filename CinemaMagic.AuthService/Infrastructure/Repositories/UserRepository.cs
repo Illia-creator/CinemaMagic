@@ -2,6 +2,7 @@ using CinemaMagic.AuthService.Data;
 using CinemaMagic.AuthService.Entities;
 using CinemaMagic.AuthService.Models;
 using CinemaMagic.AuthService.Services.Interfaces;
+using CinemaMagic.Common.ExceptionHandler.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace CinemaMagic.AuthService.Infrastruction.Repositories;
@@ -35,7 +36,7 @@ public class UserRepository : IUserRepository
         var isUserExist = await _authContext.Users.AnyAsync(u => u.Email == user.Email);
         
         if (isUserExist)
-            throw new ApplicationException($"User with email {user.Email} already exist");
+            throw new UserNotFountException($"User with email {user.Email} already exist");
         
         await _authContext.Users.AddAsync(user);
         await _authContext.SaveChangesAsync();
@@ -45,5 +46,10 @@ public class UserRepository : IUserRepository
     {
         _authContext.Users.Update(user);
         await _authContext.SaveChangesAsync();
+    }
+
+    public Task<User?> GetPhoneNumberCode(string phoneNumber)
+    {
+        throw new NotImplementedException();
     }
 }

@@ -3,7 +3,7 @@ using CinemaMagic.AuthService.Models;
 
 namespace CinemaMagic.AuthService.Services.Interfaces;
 
-public interface IAuthService
+public interface IUserService
 {
     Task<User?> RegisterAsync(UserRegisterDto userAuthDto);
     Task<TokenResponseDto?> LoginAsync(UserAuthDto userAuthDto);

@@ -13,18 +13,18 @@ namespace CinemaMagic.AuthService.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class AuthController(IAuthService authService): ControllerBase
+public class AuthController(IUserService userService): ControllerBase
 {
     [HttpPost("register")]
     public async Task<ActionResult<User>> Register(UserRegisterDto userDto)
     {
-        return  Ok(await authService.RegisterAsync(userDto));
+        return  Ok(await userService.RegisterAsync(userDto));
     }
 
     [HttpPost("login")]
     public async Task<ActionResult<TokenResponseDto>> Login(UserAuthDto userDto)
     {
-        return Ok(await authService.LoginAsync(userDto));
+        return Ok(await userService.LoginAsync(userDto));
     }
 
     [Authorize(Roles = "Admin")]
@@ -42,9 +42,10 @@ public class AuthController(IAuthService authService): ControllerBase
     }
 
     [HttpPost("Refresh-Token")]
+    [Authorize]
     public async Task<ActionResult<TokenResponseDto>> RefreshToken(RefreshTokenRequestDto refreshTokenRequestDto)
     {
-        var result = await authService.RefreshTokensAsync(refreshTokenRequestDto);
+        var result = await userService.RefreshTokensAsync(refreshTokenRequestDto);
         
         if (result is null || result.AccessToken is null || result.RefreshToken is null)
             return Unauthorized("Invalid Refresh Token");

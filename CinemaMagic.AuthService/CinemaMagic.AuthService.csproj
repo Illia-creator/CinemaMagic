@@ -24,4 +24,8 @@
     <Folder Include="Presentation\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\CinemaMagic.Common\CinemaMagic.Common.csproj" />
+  </ItemGroup>
+
 </Project>

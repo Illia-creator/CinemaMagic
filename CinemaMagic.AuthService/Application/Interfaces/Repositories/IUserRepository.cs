@@ -13,4 +13,5 @@ public interface IUserRepository
     
     public Task UpdateRefreshTokenAsync(User user);
     
+    public Task <User?> GetPhoneNumberCode(string phoneNumber);
 }
